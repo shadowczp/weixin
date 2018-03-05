@@ -1,6 +1,7 @@
 package com.example.weixin.controller;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,16 +10,19 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Arrays;
 
 @RestController()
+@RequestMapping("/test")
 public class MainController {
-    @RequestMapping("hello")
+    @RequestMapping("/hello")
     public String hello(){
         return "hello world";
     }
-    @GetMapping("weixin")
+    @GetMapping("/weixin")
     public String validate(String signature,String timestamp,String nonce,String echostr){
         String token="shadowczp";
+        System.out.println("now");
         if((timestamp == null) || nonce == null){
-            return null;
+
+            return "hello";
         }
         String[] arr = new String[]{token,timestamp,nonce};
         Arrays.sort(arr);
@@ -33,7 +37,7 @@ public class MainController {
         }
 
     }
-    @PostMapping("weixin")
+    @PostMapping("/weixin")
     public void weixin(){
 
     }

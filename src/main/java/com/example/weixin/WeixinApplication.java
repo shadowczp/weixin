@@ -1,6 +1,7 @@
 package com.example.weixin;
 
 import com.example.weixin.schedule.Scheduler;
+import com.example.weixin.service.MainService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +13,6 @@ public class WeixinApplication {
 
 	public static void main(String[] args) {
 		ApplicationContext context =SpringApplication.run(WeixinApplication.class, args);
-		context.getBean(Scheduler.class).refreshToken();
+		context.getBean(MainService.class).refreshToken();
 	}
 }

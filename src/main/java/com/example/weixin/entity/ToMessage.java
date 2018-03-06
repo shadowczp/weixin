@@ -30,6 +30,13 @@ public class ToMessage implements Serializable{
     @JacksonXmlProperty(localName="Content")
     private String content;
 
+    @JacksonXmlProperty(localName = "ArticleCount")
+    private Integer articleCount;
+
+    @JacksonXmlElementWrapper(localName = "Articles")
+    @JacksonXmlProperty(localName = "item")
+    private List<News> articles;
+
     @JacksonXmlElementWrapper(localName ="Image")
     @JacksonXmlCData
     @JacksonXmlProperty(localName="MediaId")
@@ -86,6 +93,22 @@ public class ToMessage implements Serializable{
 
     public void setMediaId(List<String> mediaId) {
         this.mediaId = mediaId;
+    }
+
+    public Integer getArticleCount() {
+        return articleCount;
+    }
+
+    public void setArticleCount(Integer articleCount) {
+        this.articleCount = articleCount;
+    }
+
+    public List<News> getArticles() {
+        return articles;
+    }
+
+    public void setArticles(List<News> articles) {
+        this.articles = articles;
     }
 
     @Override

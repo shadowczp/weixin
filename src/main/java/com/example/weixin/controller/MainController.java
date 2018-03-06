@@ -1,27 +1,24 @@
 package com.example.weixin.controller;
 
-import com.example.weixin.entity.AccessToken;
 import com.example.weixin.entity.FromMessage;
+import com.example.weixin.entity.News;
 import com.example.weixin.entity.ToMessage;
 import com.example.weixin.entity.User;
-import com.example.weixin.schedule.Scheduler;
-import org.apache.commons.codec.digest.DigestUtils;
+import com.example.weixin.service.MainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @RestController()
 public class MainController {
-    @Autowired
-    private AccessToken accessToken;
-    @Autowired
-    private Scheduler scheduler;
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
-    @Value("${token}")
-    private String token;
+    @Autowired
+    private MainService mainService;
 
     @RequestMapping("/hello")
     public String hello() {
@@ -33,18 +30,7 @@ public class MainController {
         if ((timestamp == null) || nonce == null) {
             return null;
         }
-        String[] arr = new String[]{token, timestamp, nonce};
-        Arrays.sort(arr);
-        String str = arr[0] + arr[1] + arr[2];
-        str = DigestUtils.sha1Hex(str);
-        System.out.println("str is  : " + str);
-        System.out.println("signature is  : " + signature);
-        if (str.equals(signature)) {
-            return echostr;
-        } else {
-            return null;
-        }
-
+        return mainService.validate(signature,timestamp,nonce,echostr);
     }
 
     @PostMapping("weixin")
@@ -63,13 +49,29 @@ public class MainController {
             toMessage.setMsgType("image");
             toMessage.setMediaId(Arrays.asList(xml.getMediaId()));
         }
+        toMessage.setMsgType("news");
+        List<News> newsList = new ArrayList<>();
+        News news = new News();
+        news.setDescription("描述1");
+        news.setPicUrl("https://mmbiz.qpic.cn/mmbiz_jpg/rQGBQhgrgYzLfBMlOznF0DykIn5gm98EOPicmSvRfiaKEXCdtZanY5OiaUsYkm7spDJjJtgicEMbd21vicC37edMDmw/0?wx_fmt=jpeg");
+        news.setTitle("标题1");
+        news.setUrl("blog.lovepp.xin");
+        newsList.add(news);
+        news = new News();
+        news.setPicUrl("http://img.blog.csdn.net/20161102104535158");
+        news.setUrl("blog.lovepp.xin");
+        news.setTitle("标题2");
+        news.setDescription("描述2");
+        newsList.add(news);
+        toMessage.setArticleCount(2);
+        toMessage.setArticles(newsList);
         return toMessage;
     }
 
     @RequestMapping("/get/token")
-    public AccessToken getToken() {
-        scheduler.refreshToken();
-        return accessToken;
+    public String getToken() {
+
+        return mainService.getToken();
     }
 
     @RequestMapping(value = "/get/user")

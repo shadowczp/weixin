@@ -1,12 +1,15 @@
 package com.example.weixin.entity;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+import java.util.List;
+
 @JacksonXmlRootElement(localName="xml")
-public class ToMessage
-{
+public class ToMessage implements Serializable{
 
     @JacksonXmlCData
     @JacksonXmlProperty(localName="ToUserName")
@@ -26,6 +29,11 @@ public class ToMessage
     @JacksonXmlCData
     @JacksonXmlProperty(localName="Content")
     private String content;
+
+    @JacksonXmlElementWrapper(localName ="Image")
+    @JacksonXmlCData
+    @JacksonXmlProperty(localName="MediaId")
+    private List<String> mediaId;
 
     public String getToUserName()
     {
@@ -72,8 +80,23 @@ public class ToMessage
         this.content = content;
     }
 
-    public String toString()
-    {
-        return "ToMessage{toUserName='" + this.toUserName + '\'' + ", fromUserName='" + this.fromUserName + '\'' + ", createTime='" + this.createTime + '\'' + ", msgType='" + this.msgType + '\'' + ", content='" + this.content + '\'' + '}';
+    public List<String> getMediaId() {
+        return mediaId;
+    }
+
+    public void setMediaId(List<String> mediaId) {
+        this.mediaId = mediaId;
+    }
+
+    @Override
+    public String toString() {
+        return "ToMessage{" +
+                "toUserName='" + toUserName + '\'' +
+                ", fromUserName='" + fromUserName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", msgType='" + msgType + '\'' +
+                ", content='" + content + '\'' +
+                ", mediaId=" + mediaId +
+                '}';
     }
 }

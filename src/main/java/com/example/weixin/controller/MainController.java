@@ -1,14 +1,28 @@
 package com.example.weixin.controller;
 
+import com.example.weixin.entity.AccessToken;
 import com.example.weixin.entity.FromMessage;
 import com.example.weixin.entity.ToMessage;
+import com.example.weixin.entity.User;
+import com.example.weixin.schedule.Scheduler;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Arrays;
 
 @RestController()
 public class MainController {
+    @Autowired
+    private AccessToken accessToken;
+    @Autowired
+    private Scheduler scheduler;
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+    @Value("${token}")
+    private String token;
+
     @RequestMapping("/hello")
     public String hello() {
         return "hello world";
@@ -16,7 +30,6 @@ public class MainController {
 
     @GetMapping("/weixin")
     public String validate(String signature, String timestamp, String nonce, String echostr) {
-        String token = "shadowczp";
         if ((timestamp == null) || nonce == null) {
             return null;
         }
@@ -34,23 +47,36 @@ public class MainController {
 
     }
 
-    @PostMapping(value = "/weixin", consumes = {"text/xml;charset=UTF-8"}, produces = {"application/xml;charset=UTF-8"})
+    @PostMapping("weixin")
     public ToMessage serve(@RequestBody FromMessage xml) throws Exception {
-        System.out.println("\n=============\n"+xml.toString()+"\n=============\n");
+        logger.info("\n=============\n" + xml.toString() + "\n=============\n");
         ToMessage toMessage = new ToMessage();
         toMessage.setContent("success");
         toMessage.setCreateTime(System.currentTimeMillis() + "");
         toMessage.setFromUserName(xml.getToUserName());
         toMessage.setMsgType("text");
         toMessage.setToUserName(xml.getFromUserName());
-        if ("text".equals(xml.getMsgType())) {
+        String msgType = xml.getMsgType();
+        if ("text".equals(msgType)) {
             toMessage.setContent("非常感谢您关注影子的公众号，您有什么需要的资源可以发送资源名称给影子，影子会帮您在后台中查询的");
+        } else if ("image".equals(msgType)) {
+            toMessage.setMsgType("image");
+            toMessage.setMediaId(Arrays.asList(xml.getMediaId()));
         }
         return toMessage;
     }
 
-    @RequestMapping("/exception")
-    public Integer exception() {
-        return 1 / 0;
+    @RequestMapping("/get/token")
+    public AccessToken getToken() {
+        scheduler.refreshToken();
+        return accessToken;
+    }
+
+    @RequestMapping(value = "/get/user")
+    public User getUser() {
+        User user = new User();
+        user.setName("czo");
+        user.setAge(15);
+        return user;
     }
 }

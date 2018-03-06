@@ -4,8 +4,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.io.Serializable;
+
 @JacksonXmlRootElement(localName = "xml")
-public class FromMessage {
+public class FromMessage implements Serializable{
     @JacksonXmlCData
     @JacksonXmlProperty(localName = "ToUserName")
     private String toUserName;
@@ -25,8 +27,16 @@ public class FromMessage {
     @JacksonXmlProperty(localName = "Content")
     private String content;
 
+    @JacksonXmlCData
+    @JacksonXmlProperty(localName = "PicUrl")
+    private String picUrl;
+
     @JacksonXmlProperty(localName = "MsgId")
     private String msgId;
+
+    @JacksonXmlCData
+    @JacksonXmlProperty(localName = "MediaId")
+    private String mediaId;
 
     public String getToUserName() {
         return this.toUserName;
@@ -76,7 +86,33 @@ public class FromMessage {
         this.msgId = msgId;
     }
 
+    public String getPicUrl() {
+        return picUrl;
+    }
+
+    public void setPicUrl(String picUrl) {
+        this.picUrl = picUrl;
+    }
+
+    public String getMediaId() {
+        return mediaId;
+    }
+
+    public void setMediaId(String mediaId) {
+        this.mediaId = mediaId;
+    }
+
+    @Override
     public String toString() {
-        return "FromMessage{toUserName='" + this.toUserName + '\'' + ", fromUserName='" + this.fromUserName + '\'' + ", createTime='" + this.createTime + '\'' + ", msgType='" + this.msgType + '\'' + ", content='" + this.content + '\'' + ", msgId='" + this.msgId + '\'' + '}';
+        return "FromMessage{" +
+                "toUserName='" + toUserName + '\'' +
+                ", fromUserName='" + fromUserName + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", msgType='" + msgType + '\'' +
+                ", content='" + content + '\'' +
+                ", picUrl='" + picUrl + '\'' +
+                ", msgId='" + msgId + '\'' +
+                ", mediaId='" + mediaId + '\'' +
+                '}';
     }
 }

@@ -1,9 +1,6 @@
 package com.example.weixin.controller;
 
-import com.example.weixin.entity.FromMessage;
-import com.example.weixin.entity.News;
-import com.example.weixin.entity.ToMessage;
-import com.example.weixin.entity.User;
+import com.example.weixin.entity.*;
 import com.example.weixin.service.MainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +27,7 @@ public class MainController {
         if ((timestamp == null) || nonce == null) {
             return null;
         }
-        return mainService.validate(signature,timestamp,nonce,echostr);
+        return mainService.validate(signature, timestamp, nonce, echostr);
     }
 
     @PostMapping("weixin")
@@ -80,5 +77,10 @@ public class MainController {
         user.setName("czo");
         user.setAge(15);
         return user;
+    }
+
+    @RequestMapping("/get/media")
+    public MediaList getMedia() {
+        return mainService.getMedia("news",20);
     }
 }

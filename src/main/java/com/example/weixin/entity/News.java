@@ -3,7 +3,7 @@ package com.example.weixin.entity;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
+//图文消息类
 @JacksonXmlRootElement(localName = "item")
 public class News {
     @JacksonXmlCData

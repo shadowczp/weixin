@@ -1,15 +1,20 @@
 package com.example.weixin.service;
 
 import com.example.weixin.entity.AccessToken;
+import com.example.weixin.entity.GetMediaListParam;
+import com.example.weixin.entity.MediaList;
 import com.example.weixin.schedule.Scheduler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -28,6 +33,7 @@ import java.util.Arrays;
 public class MainService {
     public static final String GET_ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token";
     public static final String UPLOAD_FOREVER_MEDIA_URL = "https://api.weixin.qq.com/cgi-bin/media/upload";
+    public static final String GET_MEDIA_LIST_URL = "https://api.weixin.qq.com/cgi-bin/material/batchget_material";
     private static final Logger logger = LoggerFactory.getLogger(MainService.class);
     @Value("${token}")
     private String token;
@@ -57,54 +63,73 @@ public class MainService {
     }
 
     public void refreshToken() {
-        HttpClient httpClient = HttpClients.createDefault();
-        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(20000).setConnectTimeout(20000).build();
-        HttpGet httpGet = null;
         try {
-            URIBuilder uriBuilder = new URIBuilder(GET_ACCESS_TOKEN_URL);
+            HttpClient httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(20000).setConnectTimeout(20000).build();
+            URIBuilder uriBuilder =  new URIBuilder(GET_ACCESS_TOKEN_URL);
             uriBuilder.setParameter("grant_type", "client_credential");
             uriBuilder.setParameter("appid", appId);
             uriBuilder.setParameter("secret", appsecret);
-            httpGet = new HttpGet(uriBuilder.build());
+            HttpGet httpGet = new HttpGet(uriBuilder.build());
+            httpGet.setConfig(requestConfig);
+            HttpResponse httpResponse = null;
+            httpResponse = httpClient.execute(httpGet);
+            HttpEntity entity = httpResponse.getEntity();
+            String jsonStr = EntityUtils.toString(entity, "UTF-8");
+            logger.info("call access_token interface with data : " + jsonStr);
+            ObjectMapper objectMapper = new ObjectMapper();
+            AccessToken newToken = objectMapper.readValue(jsonStr, AccessToken.class);
+            accessToken.setAccessToken(newToken.getAccessToken());
+            accessToken.setExpireIn(newToken.getExpireIn());
         } catch (URISyntaxException e) {
             logger.error(e.getMessage());
-            logger.error("URISyntaxException generate httpGet default");
-            return;
-        }
-
-        httpGet.setConfig(requestConfig);
-        HttpResponse httpResponse = null;
-        try {
-            httpResponse = httpClient.execute(httpGet);
+        } catch (ClientProtocolException e) {
+            logger.error(e.getMessage());
         } catch (IOException e) {
             logger.error(e.getMessage());
-            logger.error("IOException call access_token interface default");
-            return;
         }
-        HttpEntity entity = httpResponse.getEntity();
-        String jsonStr = null;
-        try {
-            jsonStr = EntityUtils.toString(entity, "UTF-8");
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.error("IOException call access_token interface with an error data");
-            return;
-        }
-        logger.info("call access_token interface with data : " + jsonStr);
-        ObjectMapper objectMapper = new ObjectMapper();
-        AccessToken newToken = null;
-        try {
-            newToken = objectMapper.readValue(jsonStr, AccessToken.class);
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            logger.error("IOException call access_token interface has some errors");
-            return;
-        }
-        accessToken.setAccessToken(newToken.getAccessToken());
-        accessToken.setExpireIn(newToken.getExpireIn());
     }
 
-    public void uploadMedia() {
+    public MediaList getMedia(String type) {
+        return getMedia(type, 0, 20);
+    }
 
+    public MediaList getMedia(String type, Integer offset) {
+        return getMedia(type, offset, 20);
+    }
+
+    public MediaList getMedia(String type, Integer offset, Integer count) {
+        GetMediaListParam getMediaListParam = new GetMediaListParam();
+        getMediaListParam.setCount(count);
+        getMediaListParam.setOffset(offset);
+        getMediaListParam.setType(type);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            String paramStr = objectMapper.writeValueAsString(getMediaListParam);
+            HttpClient httpClient = HttpClients.createDefault();
+            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(20000).setConnectTimeout(20000).build();
+            URIBuilder uriBuilder = new URIBuilder(GET_MEDIA_LIST_URL);
+            uriBuilder.setParameter("access_token", accessToken.getAccessToken());
+            HttpPost httpPost = new HttpPost(uriBuilder.build());
+            StringEntity param = new StringEntity(paramStr);
+            param.setContentEncoding("UTF-8");
+            param.setContentType("application/json");
+            httpPost.setConfig(requestConfig);
+            httpPost.setEntity(param);
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            HttpEntity entity = httpResponse.getEntity();
+            String jsonStr = EntityUtils.toString(entity, "UTF-8");
+            logger.info("call get_media_list interface with data : " + jsonStr);
+            MediaList mediaList = objectMapper.readValue(jsonStr, MediaList.class);
+            return mediaList;
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage());
+        } catch (ClientProtocolException e) {
+            logger.error(e.getMessage());
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
     }
 }
